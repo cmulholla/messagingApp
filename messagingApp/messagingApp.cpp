@@ -10,6 +10,33 @@
 #include <thread>
 #include <chrono>
 
+void serverRecieve(sf::TcpSocket socket) {
+    while (true) {
+        // Receive a message back from the client
+        char in[1024];
+        std::size_t received;
+        if (socket.receive(in, sizeof(in), received) != sf::Socket::Done) {
+            std::cout << "Error!" << std::endl;
+            return;
+        }
+        std::cout << in << std::endl;
+    }
+}
+
+void serverSend(sf::TcpSocket socket) {
+    while (true) {
+        // Receive a message back from the client
+        char out[1024];
+        std::cin >> out;
+        std::size_t received;
+        if (socket.send(out, sizeof(out)) != sf::Socket::Done) {
+            std::cout << "Error!" << std::endl;
+            return;
+        }
+        std::cout << "Message sent to the client: \"" << out << "\"" << std::endl;
+    }
+}
+
 void runTcpServer(unsigned short port)
 {
     // Create a server socket to accept new connections
@@ -26,20 +53,36 @@ void runTcpServer(unsigned short port)
         return;
     std::cout << "Client connected: " << socket.getRemoteAddress() << std::endl;
 
-    // Send a message to the connected client
-    char out[] = "Hi, I'm the server";
-    if (socket.send(out, sizeof(out)) != sf::Socket::Done)
-        return;
-    std::cout << "Message sent to the client: \"" << out << "\"" << std::endl;
+    std::thread threadObj(serverSend, socket);
+    std::thread threadObj2(serverRecieve, socket);
+    threadObj2.join();
+    threadObj.join();
+}
 
-    
+void clientRecieve(sf::TcpSocket socket) {
+    while (true) {
+        // Receive a message from the server
+        char in[1024];
+        std::size_t received;
+        if (socket.receive(in, sizeof(in), received) != sf::Socket::Done) {
+            std::cout << "Error!" << std::endl;
+            return;
+        }
+        std::cout << in << std::endl;
+    }
+}
 
-    // Receive a message back from the client
-    char in[128];
-    std::size_t received;
-    if (socket.receive(in, sizeof(in), received) != sf::Socket::Done)
-        return;
-    std::cout << "Answer received from the client: \"" << in << "\"" << std::endl;
+void clientSend(sf::TcpSocket socket) {
+    while (true) {
+        // Send an answer to the server
+        char out[1024];
+        std::cin >> out;
+        if (socket.send(out, sizeof(out)) != sf::Socket::Done) {
+            std::cout << "Error!" << std::endl;
+            return;
+        }
+        std::cout << "Message sent to the server: \"" << out << "\"" << std::endl;
+    }
 }
 
 void runTcpClient(unsigned short port)
@@ -60,37 +103,10 @@ void runTcpClient(unsigned short port)
         return;
     std::cout << "Connected to server " << server << std::endl;
 
-    // Receive a message from the server
-    char in[128];
-    std::size_t received;
-    if (socket.receive(in, sizeof(in), received) != sf::Socket::Done)
-        return;
-    std::cout << "Message received from the server: \"" << in << "\"" << std::endl;
-
-    // Send an answer to the server
-    char out[] = "Hi, I'm a client";
-    if (socket.send(out, sizeof(out)) != sf::Socket::Done)
-        return;
-    std::cout << "Message sent to the server: \"" << out << "\"" << std::endl;
-}
-
-void test1() {
-    std::cout << "test1" << std::endl;
-    std::string var;
-    std::cin >> var;
-    std::cout << var << std::endl;
-    std::cout << "test1" << std::endl;
-}
-
-void test2() {
-    std::cout << "test2" << std::endl;
-    std::cout << "test2" << std::endl;
-    std::cout << "test2" << std::endl;
-    std::cout << "test2" << std::endl;
-    for (int i = 0; i < 5; i++) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-        std::cout << "test2" << std::endl;
-    }
+    std::thread threadObj(clientRecieve, socket);
+    std::thread threadObj2(clientSend, socket);
+    threadObj2.join();
+    threadObj.join();
 }
 
 int main()
@@ -102,10 +118,12 @@ int main()
     std::cin >> who;
 
     int port = 49699;
-    std::thread threadObj(test1);
+
+    /*std::thread threadObj(test1);
     std::thread threadObj2(test2);
     threadObj2.join();
     threadObj.join();
+    */
 
     // Test the TCP protocol
     if (who == 's')
