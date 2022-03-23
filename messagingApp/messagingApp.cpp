@@ -10,7 +10,7 @@
 #include <thread>
 #include <chrono>
 
-void recieve(sf::TcpSocket& socket) {
+void recieve(sf::TcpSocket& socket) { // basic function to recieve c-strings from a socket. Used both by the server and client.
     while (true) {
         // Receive a message from the server
         char in[1024];
@@ -23,7 +23,7 @@ void recieve(sf::TcpSocket& socket) {
     }
 }
 
-void send(sf::TcpSocket& socket) {
+void send(sf::TcpSocket& socket) { // basic function to send strings to a socket. Used both by the server and client.
     while (true) {
         // Send an answer to the server
         std::string temp;
@@ -38,7 +38,7 @@ void send(sf::TcpSocket& socket) {
     }
 }
 
-void runTcpServer(unsigned short port)
+void runTcpServer(unsigned short port) //listens for a connection from a client and starts threads.
 {
     // Create a server socket to accept new connections
     sf::TcpListener listener;
@@ -60,7 +60,7 @@ void runTcpServer(unsigned short port)
     clientSend.join();
 }
 
-void runTcpClient(unsigned short port)
+void runTcpClient(unsigned short port) //asks for an IP address and attempts to connect to it, then starts the threads.
 {
     // Ask for the server address
     sf::IpAddress server;
@@ -94,19 +94,11 @@ int main()
 
     int port = 49699;
 
-    /*std::thread threadObj(test1);
-    std::thread threadObj2(test2);
-    threadObj2.join();
-    threadObj.join();
-    */
-
-    // Test the TCP protocol
+    // Run the TCP protocol
     if (who == 's')
         runTcpServer(port);
     else
         runTcpClient(port);
-
-    std::cin >> port;
 
     return 0;
 }
