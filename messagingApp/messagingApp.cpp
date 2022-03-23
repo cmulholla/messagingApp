@@ -10,9 +10,9 @@
 #include <thread>
 #include <chrono>
 
-void serverRecieve(sf::TcpSocket socket) {
+void recieve(sf::TcpSocket& socket) {
     while (true) {
-        // Receive a message back from the client
+        // Receive a message from the server
         char in[1024];
         std::size_t received;
         if (socket.receive(in, sizeof(in), received) != sf::Socket::Done) {
@@ -23,17 +23,18 @@ void serverRecieve(sf::TcpSocket socket) {
     }
 }
 
-void serverSend(sf::TcpSocket socket) {
+void send(sf::TcpSocket& socket) {
     while (true) {
-        // Receive a message back from the client
+        // Send an answer to the server
+        std::string temp;
         char out[1024];
-        std::cin >> out;
-        std::size_t received;
+        getline(std::cin, temp);
+        strcpy_s(out, temp.c_str()); //copy the string over to the c string
         if (socket.send(out, sizeof(out)) != sf::Socket::Done) {
             std::cout << "Error!" << std::endl;
             return;
         }
-        std::cout << "Message sent to the client: \"" << out << "\"" << std::endl;
+        std::cout << "Message sent to the server: \"" << out << "\"" << std::endl;
     }
 }
 
@@ -53,36 +54,10 @@ void runTcpServer(unsigned short port)
         return;
     std::cout << "Client connected: " << socket.getRemoteAddress() << std::endl;
 
-    std::thread threadObj(serverSend, socket);
-    std::thread threadObj2(serverRecieve, socket);
-    threadObj2.join();
-    threadObj.join();
-}
-
-void clientRecieve(sf::TcpSocket socket) {
-    while (true) {
-        // Receive a message from the server
-        char in[1024];
-        std::size_t received;
-        if (socket.receive(in, sizeof(in), received) != sf::Socket::Done) {
-            std::cout << "Error!" << std::endl;
-            return;
-        }
-        std::cout << in << std::endl;
-    }
-}
-
-void clientSend(sf::TcpSocket socket) {
-    while (true) {
-        // Send an answer to the server
-        char out[1024];
-        std::cin >> out;
-        if (socket.send(out, sizeof(out)) != sf::Socket::Done) {
-            std::cout << "Error!" << std::endl;
-            return;
-        }
-        std::cout << "Message sent to the server: \"" << out << "\"" << std::endl;
-    }
+    std::thread clientRecieve(recieve, std::ref(socket));
+    std::thread clientSend(send, std::ref(socket));
+    clientRecieve.join();
+    clientSend.join();
 }
 
 void runTcpClient(unsigned short port)
@@ -103,10 +78,10 @@ void runTcpClient(unsigned short port)
         return;
     std::cout << "Connected to server " << server << std::endl;
 
-    std::thread threadObj(clientRecieve, socket);
-    std::thread threadObj2(clientSend, socket);
-    threadObj2.join();
-    threadObj.join();
+    std::thread clientRecieve(recieve, std::ref(socket));
+    std::thread clientSend(send, std::ref(socket));
+    clientRecieve.join();
+    clientSend.join();
 }
 
 int main()
