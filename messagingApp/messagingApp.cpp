@@ -13,8 +13,6 @@
 
 void recieve(sf::TcpSocket& socket) { // basic function to recieve c-strings from a socket. Used both by the server and client.
 
-    sf::IpAddress sender;
-    std::cout << "Current IPv4 is: " << sender.getLocalAddress() << std::endl;
     while (true) {
         // Receive a message from the server
         char in[1024];
@@ -103,7 +101,7 @@ void usend(sf::UdpSocket& socket, unsigned short port) {
         for (int i = 0; i < addresses.size(); i++) {
             if (socket.send(out, sizeof(out), addresses[i], port) != sf::Socket::Done)
                 return;
-            std::cout << "Message sent to " << addresses[i] << ": \"" << out << "\"" << std::endl;
+            //std::cout << "Message sent to " << addresses[i] << ": \"" << out << "\"" << std::endl;
         }
     }
 }
@@ -113,12 +111,11 @@ void urecieve(sf::UdpSocket& socket, unsigned short port) {
     std::size_t received;
     sf::IpAddress sender;
     unsigned short senderPort;
-    std::cout << "Current IPv4 is: " << sender.getLocalAddress() << std::endl;
     while (true) {
         // Receive an answer from anyone (but most likely from the server)
         if (socket.receive(in, sizeof(in), received, sender, senderPort) != sf::Socket::Done)
             return;
-        std::cout << "Message received from " << sender << ": \"" << in << "\"" << std::endl;
+        std::cout << sender << ": " << in << std::endl;
         //check to see if sender is in addresses, and if not then add it.
         for (int i = 0; i < addresses.size(); i++) {
             if (addresses[i].toString() == sender.toString()) {
@@ -128,6 +125,10 @@ void urecieve(sf::UdpSocket& socket, unsigned short port) {
                 addresses.push_back(sender); //add to list of people to send to
                 std::cout << "address added to send list\n" << std::endl;
             }
+        }
+        if (addresses.size() == 0) { //no addresses in list, so add it.
+            addresses.push_back(sender); //add to list of people to send to
+            std::cout << "address added to send list\n" << std::endl;
         }
     }
 }
@@ -178,6 +179,9 @@ void runUdpServer(unsigned short port) //Launch a server, wait for a message, se
 
 int main()
 {
+    sf::IpAddress sender;
+    std::cout << "Current IPv4 is: " << sender.getLocalAddress() << std::endl;
+
     //two-way or multi-way?
     char com;
     std::cout << "one-to-one communication (1) or chat room (2)? ";
