@@ -12,6 +12,9 @@
 #include <vector>
 
 void recieve(sf::TcpSocket& socket) { // basic function to recieve c-strings from a socket. Used both by the server and client.
+
+    sf::IpAddress sender;
+    std::cout << "Current IPv4 is: " << sender.getLocalAddress() << std::endl;
     while (true) {
         // Receive a message from the server
         char in[1024];
@@ -106,12 +109,13 @@ void usend(sf::UdpSocket& socket, unsigned short port) {
 }
 
 void urecieve(sf::UdpSocket& socket, unsigned short port) {
+    char in[1024];
+    std::size_t received;
+    sf::IpAddress sender;
+    unsigned short senderPort;
+    std::cout << "Current IPv4 is: " << sender.getLocalAddress() << std::endl;
     while (true) {
         // Receive an answer from anyone (but most likely from the server)
-        char in[1024];
-        std::size_t received;
-        sf::IpAddress sender;
-        unsigned short senderPort;
         if (socket.receive(in, sizeof(in), received, sender, senderPort) != sf::Socket::Done)
             return;
         std::cout << "Message received from " << sender << ": \"" << in << "\"" << std::endl;
